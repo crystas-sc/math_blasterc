@@ -3,7 +3,7 @@
 "short_name": "MathBlasterc",
 "description": "An educational 3D arcade space shooter.",
 "start_url": "./index.html",
-"display": "standalone",
+"display": "fullscreen",
 "background_color": "#000000",
 "theme_color": "#00ffff",
 "orientation": "landscape",

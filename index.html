@@ -373,7 +373,7 @@
                     }
                 } else {
                     const r = Math.random();
-                    if (r < 0.4) {
+                    if (r < 0.7) {
                         a = Math.floor(Math.random() * 9) + 2;
                         b = Math.floor(Math.random() * 9) + 2;
                         op = '×';
@@ -510,7 +510,7 @@
                 createExplosion(asteroid.position, 0x00ff00);
                 GameState.score += 100 * GameState.level;
                 GameState.level++;
-                GameState.speed += 0.02;
+                //GameState.speed += 0.02;
                 GameState.asteroids.forEach(a => { createExplosion(a.position, 0xaaaaaa); scene.remove(a); });
                 GameState.asteroids = []; GameState.waveActive = false;
                 updateHUD();
