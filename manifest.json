@@ -1,0 +1,18 @@
+{
+"name": "Math Blasterc 3D",
+"short_name": "MathBlasterc",
+"description": "An educational 3D arcade space shooter.",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#000000",
+"theme_color": "#00ffff",
+"orientation": "landscape",
+"icons": [
+{
+"src": "icon.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any maskable"
+}
+]
+}
