@@ -390,57 +390,125 @@
             pauseInterval: null
         };
 
+        // Math logic
+        function createDigitPool(minValue, maxValue) {
+            const digits = new Int16Array(maxValue - minValue + 1);
+            let remaining = digits.length;
+
+            function resetPool() {
+                for (let i = 0; i < digits.length; i++) {
+                    digits[i] = minValue + i;
+                }
+                for (let i = digits.length - 1; i > 0; i--) {
+                    const randomIndex = (Math.random() * (i + 1)) | 0;
+                    const temp = digits[i];
+                    digits[i] = digits[randomIndex];
+                    digits[randomIndex] = temp;
+                }
+                remaining = digits.length;
+            }
+
+            resetPool();
+
+            return function getNextDigit() {
+                if (remaining === 0) resetPool();
+                console.log(digits.slice(0, remaining));
+                return digits[--remaining];
+            };
+        }
+
+        const smallDigits = createDigitPool(1, 9);
+        const mediumDigits = createDigitPool(5, 24);
+        const largeDigits = createDigitPool(10, 99);
+        const multiplyDigits = createDigitPool(2, 9);
+        function generateEasyAddition() {
+            const left = smallDigits();
+            const right = smallDigits();
+            return { left, operator: '+', right, answer: left + right };
+        }
+
+        function generateMediumAddOrSubtract() {
+            if (Math.random() < 0.5) {
+                const left = mediumDigits();
+                const right = mediumDigits();
+                return { left, operator: '+', right, answer: left + right };
+            }
+
+            let left = mediumDigits();
+            let right = smallDigits();
+            if (right > left) {
+                const temp = left;
+                left = right;
+                right = temp;
+            }
+            return { left, operator: '-', right, answer: left - right };
+        }
+
+        function generateMixedAddSubtractMultiply() {
+            if (Math.random() < 0.7) {
+                const left = multiplyDigits();
+                const right = multiplyDigits();
+                return { left, operator: '×', right, answer: left * right };
+            }
+
+            let left = largeDigits();
+            let right = mediumDigits();
+            const operator = Math.random() < 0.5 ? '+' : '-';
+
+            if (operator === '-' && right > left) {
+                const temp = left;
+                left = right;
+                right = temp;
+            }
+
+            return {
+                left,
+                operator,
+                right,
+                answer: operator === '+' ? left + right : left - right
+            };
+        }
+
+        function generateHardMixed() {
+            if (Math.random() < 0.7) {
+                const left = multiplyDigits();
+                const right = multiplyDigits();
+                return { left, operator: '×', right, answer: left * right };
+            }
+
+            let left = largeDigits();
+            let right = largeDigits();
+            const operator = Math.random() < 0.5 ? '+' : '-';
+
+            if (operator === '-' && right > left) {
+                const temp = left;
+                left = right;
+                right = temp;
+            }
+
+            return {
+                left,
+                operator,
+                right,
+                answer: operator === '+' ? left + right : left - right
+            };
+        }
+
+
         const MathLogic = {
             generate: function (level) {
-                let a, b, op, ans;
-                const difficulty = Math.min(level, 15);
-                if (difficulty <= 2) {
-                    a = Math.floor(Math.random() * 9) + 1;
-                    b = Math.floor(Math.random() * 9) + 1;
-                    op = '+';
-                    ans = a + b;
-                } else if (difficulty <= 4) {
-                    if (Math.random() > 0.5) {
-                        a = Math.floor(Math.random() * 20) + 5;
-                        b = Math.floor(Math.random() * 20) + 5;
-                        op = '+';
-                        ans = a + b;
-                    } else {
-                        a = Math.floor(Math.random() * 15) + 5;
-                        b = Math.floor(Math.random() * a);
-                        op = '-';
-                        ans = a - b;
-                    }
-                } else if (difficulty <= 7) {
-                    const r = Math.random();
-                    if (r < 0.4) {
-                        a = Math.floor(Math.random() * 6) + 2;
-                        b = Math.floor(Math.random() * 6) + 2;
-                        op = '×';
-                        ans = a * b;
-                    } else {
-                        a = Math.floor(Math.random() * 50) + 10;
-                        b = Math.floor(Math.random() * 50);
-                        op = Math.random() > 0.5 ? '+' : '-';
-                        if (op === '-' && b > a) [a, b] = [b, a];
-                        ans = op === '+' ? a + b : a - b;
-                    }
-                } else {
-                    const r = Math.random();
-                    if (r < 0.7) {
-                        a = Math.floor(Math.random() * 9) + 2;
-                        b = Math.floor(Math.random() * 9) + 2;
-                        op = '×';
-                        ans = a * b;
-                    } else {
-                        a = Math.floor(Math.random() * 99) + 10;
-                        b = Math.floor(Math.random() * 99) + 10;
-                        op = Math.random() > 0.5 ? '+' : '-';
-                        if (op === '-' && b > a) [a, b] = [b, a];
-                        ans = op === '+' ? a + b : a - b;
-                    }
-                }
-                return { q: `${a} ${op} ${b}`, a: ans };
+                const difficulty = Math.min(level, 7);
+
+                let problem;
+                if (difficulty <= 1) problem = generateEasyAddition();
+                else if (difficulty <= 3) problem = generateMediumAddOrSubtract();
+                else if (difficulty <= 5) problem = generateMixedAddSubtractMultiply();
+                else problem = generateHardMixed();
+
+                return {
+                    q: `${problem.left} ${problem.operator} ${problem.right}`,
+                    a: problem.answer
+                };
             },
             getWrongAnswers: function (correct, count) {
                 const wrongs = new Set();
