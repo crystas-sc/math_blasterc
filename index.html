@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Math Blaster 3D</title>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#000000">
@@ -103,7 +105,8 @@
         }
 
         /* Updated Screen Styles for better height management */
-        #start-screen, #game-over-screen {
+        #start-screen,
+        #game-over-screen {
             position: absolute;
             top: 0;
             left: 0;
@@ -118,7 +121,8 @@
             pointer-events: auto;
             padding: 20px;
             box-sizing: border-box;
-            overflow-y: auto; /* Allow internal scrolling if content overflows */
+            overflow-y: auto;
+            /* Allow internal scrolling if content overflows */
         }
 
         h1 {
@@ -157,7 +161,8 @@
             cursor: pointer;
             box-shadow: 0 0 15px #f0f;
             transition: transform 0.2s, box-shadow 0.2s;
-            flex-shrink: 0; /* Prevent button from shrinking */
+            flex-shrink: 0;
+            /* Prevent button from shrinking */
         }
 
         button:active {
@@ -179,42 +184,88 @@
             opacity: 0.8;
             transition: opacity 0.2s;
         }
-        
-        #crosshair::before, #crosshair::after {
+
+        #crosshair::before,
+        #crosshair::after {
             content: '';
             position: absolute;
             background: #0f0;
             box-shadow: 0 0 10px #0f0;
         }
-        
+
         #crosshair::before {
-            top: 19px; left: 0; width: 40px; height: 2px;
+            top: 19px;
+            left: 0;
+            width: 40px;
+            height: 2px;
         }
-        
+
         #crosshair::after {
-            top: 0; left: 19px; width: 2px; height: 40px;
+            top: 0;
+            left: 19px;
+            width: 2px;
+            height: 40px;
         }
 
         /* Specific fixes for small landscape screens */
         @media (max-height: 450px) {
-            h1 { font-size: 1.5rem; margin-bottom: 5px; }
-            .briefing-box { display: none; } /* Hide briefing text on tiny screens to prioritize button */
-            button { margin-top: 5px; padding: 10px 30px; font-size: 1.1rem; }
-            #question-display { font-size: 1.4rem; padding: 5px 15px; }
-            .stats-bar { font-size: 0.9rem; }
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .briefing-box {
+                display: none;
+            }
+
+            /* Hide briefing text on tiny screens to prioritize button */
+            button {
+                margin-top: 5px;
+                padding: 10px 30px;
+                font-size: 1.1rem;
+            }
+
+            #question-display {
+                font-size: 1.4rem;
+                padding: 5px 15px;
+            }
+
+            .stats-bar {
+                font-size: 0.9rem;
+            }
         }
 
         @media (max-width: 600px) {
-            #question-display { font-size: 1.8rem; padding: 5px 20px; }
-            h1 { font-size: 2rem; }
+            #question-display {
+                font-size: 1.8rem;
+                padding: 5px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        #pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            margin: 0;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            width: auto;
+            z-index: 50;
+            pointer-events: auto;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
+
 <body>
 
     <div id="orientation-overlay">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0ff" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2" transform="rotate(90 12 12)"></rect>
             <path d="M12 18h.01"></path>
         </svg>
@@ -234,6 +285,7 @@
             </div>
         </div>
         <div id="crosshair"></div>
+        <button id="pause-btn" class="hidden">PAUSE</button>
     </div>
 
     <div id="start-screen">
@@ -263,11 +315,11 @@
 
         const AudioSys = {
             ctx: null,
-            init: function() {
+            init: function () {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 this.ctx = new AudioContext();
             },
-            playLaser: function() {
+            playLaser: function () {
                 if (!this.ctx) return;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -281,7 +333,7 @@
                 osc.start();
                 osc.stop(this.ctx.currentTime + 0.2);
             },
-            playExplosion: function() {
+            playExplosion: function () {
                 if (!this.ctx) return;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -295,7 +347,7 @@
                 osc.start();
                 osc.stop(this.ctx.currentTime + 0.5);
             },
-            playWrong: function() {
+            playWrong: function () {
                 if (!this.ctx) return;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -312,7 +364,7 @@
         };
 
         const Input = {
-            keys: { 
+            keys: {
                 ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
                 w: false, a: false, s: false, d: false,
                 " ": false, Enter: false
@@ -333,11 +385,13 @@
             asteroids: [],
             lasers: [],
             particles: [],
-            waveActive: false
+            waveActive: false,
+            isPaused: false,
+            pauseInterval: null
         };
 
         const MathLogic = {
-            generate: function(level) {
+            generate: function (level) {
                 let a, b, op, ans;
                 const difficulty = Math.min(level, 15);
                 if (difficulty <= 2) {
@@ -353,7 +407,7 @@
                         ans = a + b;
                     } else {
                         a = Math.floor(Math.random() * 15) + 5;
-                        b = Math.floor(Math.random() * a); 
+                        b = Math.floor(Math.random() * a);
                         op = '-';
                         ans = a - b;
                     }
@@ -388,9 +442,9 @@
                 }
                 return { q: `${a} ${op} ${b}`, a: ans };
             },
-            getWrongAnswers: function(correct, count) {
+            getWrongAnswers: function (correct, count) {
                 const wrongs = new Set();
-                while(wrongs.size < count) {
+                while (wrongs.size < count) {
                     let deviation = Math.floor(Math.random() * 10) - 5;
                     if (deviation === 0) deviation = 1;
                     let val = correct + deviation;
@@ -421,9 +475,9 @@
         const starGeo = new THREE.BufferGeometry();
         const starCount = 2000;
         const starPos = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) starPos[i] = (Math.random() - 0.5) * 400;
+        for (let i = 0; i < starCount * 3; i++) starPos[i] = (Math.random() - 0.5) * 400;
         starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.5}));
+        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 }));
         scene.add(stars);
 
         const raycaster = new THREE.Raycaster();
@@ -451,15 +505,15 @@
             const wrongAnswers = MathLogic.getWrongAnswers(math.a, count - 1);
             const correctIdx = Math.floor(Math.random() * count);
             const spread = 20; const startX = -((count - 1) * spread) / 2;
-            for(let i=0; i<count; i++) {
+            for (let i = 0; i < count; i++) {
                 const isCorrect = (i === correctIdx);
                 const val = isCorrect ? math.a : wrongAnswers.pop();
                 const mesh = new THREE.Mesh(
                     new THREE.IcosahedronGeometry(1.5, 0),
                     new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8, flatShading: true })
                 );
-                mesh.position.set(startX + (i * spread), (Math.random()-0.5)*10, -50 - (Math.random() * 10));
-                mesh.userData = { rotSpeed: { x: Math.random()*0.02, y: Math.random()*0.02 }, isCorrect, value: val, velocity: GameState.speed };
+                mesh.position.set(startX + (i * spread), (Math.random() - 0.5) * 10, -50 - (Math.random() * 10));
+                mesh.userData = { rotSpeed: { x: Math.random() * 0.02, y: Math.random() * 0.02 }, isCorrect, value: val, velocity: GameState.speed };
                 const spriteMat = new THREE.SpriteMaterial({ map: createTextTexture(val.toString(), '#00ffff'), transparent: true });
                 const sprite = new THREE.Sprite(spriteMat);
                 sprite.position.y = 2.2; sprite.scale.set(6, 6, 1);
@@ -482,14 +536,14 @@
             for (let i = 0; i < 20; i++) {
                 const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color }));
                 mesh.position.copy(pos);
-                mesh.userData.vel = new THREE.Vector3((Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5);
+                mesh.userData.vel = new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5);
                 scene.add(mesh);
                 GameState.particles.push(mesh);
             }
         }
 
         function checkInput(x, y) {
-            if (!GameState.isPlaying) return;
+            if (!GameState.isPlaying || GameState.isPaused) return;
             updateCrosshairPosition(x, y);
             Input.cursor.x = x; Input.cursor.y = y;
             pointer.x = (x / window.innerWidth) * 2 - 1; pointer.y = -(y / window.innerHeight) * 2 + 1;
@@ -526,7 +580,7 @@
             GameState.lives--;
             AudioSys.playWrong();
             updateHUD();
-            
+
             GameState.asteroids.forEach(a => { createExplosion(a.position, 0xff0000); scene.remove(a); });
             GameState.asteroids = [];
             GameState.waveActive = false;
@@ -538,6 +592,8 @@
 
         function gameOver(reason) {
             GameState.isPlaying = false;
+            if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
+            document.getElementById('pause-btn').classList.add('hidden');
             document.getElementById('ui-layer').classList.add('hidden');
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('final-score').innerText = `Final Score: ${GameState.score}`;
@@ -551,6 +607,10 @@
             GameState.asteroids = []; GameState.particles = []; GameState.lasers = [];
             GameState.score = 0; GameState.level = 1; GameState.lives = 9; GameState.speed = 0.08;
             GameState.waveActive = false; GameState.isPlaying = true;
+            GameState.isPaused = false;
+            if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
+            document.getElementById('pause-btn').classList.remove('hidden');
+            document.getElementById('pause-btn').innerText = 'PAUSE';
             Input.cursor.x = window.innerWidth / 2; Input.cursor.y = window.innerHeight / 2;
             updateCrosshairPosition(Input.cursor.x, Input.cursor.y);
             updateHUD();
@@ -558,6 +618,25 @@
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
             spawnWave();
+        }
+
+        function togglePause() {
+            if (!GameState.isPlaying) return;
+            GameState.isPaused = !GameState.isPaused;
+            const btn = document.getElementById('pause-btn');
+
+            if (GameState.isPaused) {
+                btn.innerText = 'RESUME';
+                GameState.pauseInterval = setInterval(() => {
+                    if (GameState.score > 0) {
+                        GameState.score = Math.max(0, GameState.score - 5);
+                        updateHUD();
+                    }
+                }, 200);
+            } else {
+                btn.innerText = 'PAUSE';
+                if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
+            }
         }
 
         function updateHUD() {
@@ -574,7 +653,12 @@
         function animate() {
             requestAnimationFrame(animate);
             if (!GameState.isPlaying) return;
-            
+
+            if (GameState.isPaused) {
+                renderer.render(scene, camera);
+                return;
+            }
+
             let moved = false;
             if (Input.keys.ArrowUp || Input.keys.w) { Input.cursor.y -= Input.cursorSpeed; moved = true; }
             if (Input.keys.ArrowDown || Input.keys.s) { Input.cursor.y += Input.cursorSpeed; moved = true; }
@@ -597,7 +681,7 @@
                 a.rotation.x += a.userData.rotSpeed.x; a.rotation.y += a.userData.rotSpeed.y;
                 if (a.position.z > camera.position.z - 1.5) {
                     takeDamage("Hull Impact!");
-                    return; 
+                    return;
                 }
             }
 
@@ -616,22 +700,27 @@
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('mousemove', (e) => { if (GameState.isPlaying) { Input.cursor.x = e.clientX; Input.cursor.y = e.clientY; updateCrosshairPosition(e.clientX, e.clientY); }});
+        window.addEventListener('mousemove', (e) => { if (GameState.isPlaying) { Input.cursor.x = e.clientX; Input.cursor.y = e.clientY; updateCrosshairPosition(e.clientX, e.clientY); } });
         window.addEventListener('mousedown', (e) => { if (e.target.tagName !== 'BUTTON') checkInput(e.clientX, e.clientY); });
-        window.addEventListener('touchstart', (e) => { if (e.target.tagName !== 'BUTTON') { const t = e.touches[0]; checkInput(t.clientX, t.clientY); }}, { passive: false });
-        window.addEventListener('touchmove', (e) => { if (GameState.isPlaying) { const t = e.touches[0]; Input.cursor.x = t.clientX; Input.cursor.y = t.clientY; updateCrosshairPosition(t.clientX, t.clientY); }}, { passive: false });
-        window.addEventListener('keydown', (e) => { if (Input.keys.hasOwnProperty(e.key)) { Input.keys[e.key] = true; if(e.key === " " && GameState.isPlaying) e.preventDefault(); }});
+        window.addEventListener('touchstart', (e) => { if (e.target.tagName !== 'BUTTON') { const t = e.touches[0]; checkInput(t.clientX, t.clientY); } }, { passive: false });
+        window.addEventListener('touchmove', (e) => { if (GameState.isPlaying) { const t = e.touches[0]; Input.cursor.x = t.clientX; Input.cursor.y = t.clientY; updateCrosshairPosition(t.clientX, t.clientY); } }, { passive: false });
+        window.addEventListener('keydown', (e) => { if (Input.keys.hasOwnProperty(e.key)) { Input.keys[e.key] = true; if (e.key === " " && GameState.isPlaying) e.preventDefault(); } });
         window.addEventListener('keyup', (e) => { if (Input.keys.hasOwnProperty(e.key)) Input.keys[e.key] = false; });
-        window.addEventListener('resize', () => { 
-            camera.aspect = window.innerWidth / window.innerHeight; 
-            camera.updateProjectionMatrix(); 
-            renderer.setSize(window.innerWidth, window.innerHeight); 
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
             Input.cursor.x = window.innerWidth / 2;
             Input.cursor.y = window.innerHeight / 2;
+        });
+        document.getElementById('pause-btn').addEventListener('click', () => togglePause());
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
         });
         document.getElementById('start-btn').addEventListener('click', () => { AudioSys.init(); resetGame(); });
         document.getElementById('restart-btn').addEventListener('click', () => { resetGame(); });
         animate();
     </script>
 </body>
+
 </html>
