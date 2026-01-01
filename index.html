@@ -702,7 +702,7 @@
 
         window.addEventListener('mousemove', (e) => { if (GameState.isPlaying) { Input.cursor.x = e.clientX; Input.cursor.y = e.clientY; updateCrosshairPosition(e.clientX, e.clientY); } });
         window.addEventListener('mousedown', (e) => { if (GameState.isPaused) togglePause(); if (e.target.tagName !== 'BUTTON') checkInput(e.clientX, e.clientY); });
-        window.addEventListener('touchstart', (e) => { if (GameState.isPaused) togglePause(); if (e.target.tagName !== 'BUTTON') { const t = e.touches[0]; checkInput(t.clientX, t.clientY); } }, { passive: false });
+        window.addEventListener('touchstart', (e) => { if (e.target.tagName !== 'BUTTON') { const t = e.touches[0]; checkInput(t.clientX, t.clientY); } }, { passive: false });
         window.addEventListener('touchmove', (e) => { if (GameState.isPlaying) { const t = e.touches[0]; Input.cursor.x = t.clientX; Input.cursor.y = t.clientY; updateCrosshairPosition(t.clientX, t.clientY); } }, { passive: false });
         window.addEventListener('keydown', (e) => { if (Input.keys.hasOwnProperty(e.key)) { Input.keys[e.key] = true; if (e.key === " " && GameState.isPlaying) e.preventDefault(); } });
         window.addEventListener('keyup', (e) => { if (Input.keys.hasOwnProperty(e.key)) Input.keys[e.key] = false; });

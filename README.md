@@ -1,7 +1,7 @@
-#Math Blasterc
+# Math Blasterc
 An educational, high-octane 3D arcade space shooter built with Three.js. Test your mental math reflexes while navigating through deep space and blasting asteroids that hold the correct answers to galactic equations.  
 
-##🚀 Features 
+## 🚀 Features 
 Immersive 3D Environment: Powered by Three.js with starfields, fog effects, and dynamic lighting.
 Adaptive Difficulty: Math problems scale in complexity as you progress through levels (Addition, Subtraction, and Multiplication).
 Cross-Platform Play: * Desktop: Aim with WASD/Arrows and fire with Space/Enter.
@@ -25,7 +25,7 @@ npx serve .
 
 Open the Browser:
 Navigate to http://localhost:8000/math-asteroids.html.
-##🎮 How to Play
+## 🎮 How to Play
 Mission Objective
 Destroy the asteroid displaying the correct answer to the equation shown at the top of the HUD.
 Controls
@@ -43,6 +43,6 @@ Correct Hit: +100 points (multiplied by level), advances to next wave.
 Wrong Hit: -50 points.
 Asteroid Collision: If an asteroid reaches your ship, you lose 1 Hull point.
 Lives: You start with 9 Hull integrity points.
-📱 Mobile Optimization
+## 📱 Mobile Optimization
 The game is designed to be played in Landscape Mode. If held in portrait, an orientation overlay will guide you to rotate your device for the best tactical view.
 Created as an educational tool for sharpening math skills through gaming.
