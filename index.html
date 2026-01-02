@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Math Blaster 3D</title>
+    <title>Math Blasterc</title>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
@@ -143,6 +143,28 @@
             margin: 10px 0;
         }
 
+        #settings-modal .briefing-box {
+            max-height: 50vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #0ff #222;
+        }
+
+        #settings-modal .briefing-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #settings-modal .briefing-box::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        #settings-modal .briefing-box::-webkit-scrollbar-thumb {
+            background: #0ff;
+            border-radius: 4px;
+            box-shadow: 0 0 5px #0ff;
+        }
+
         .setting-input {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid #0ff;
@@ -192,7 +214,7 @@
                 margin-bottom: 5px;
             }
 
-            .briefing-box {
+            #start-screen .briefing-box {
                 display: none;
             }
 
@@ -287,7 +309,7 @@
     </div>
 
     <div id="start-screen">
-        <h1>MATH BLASTER</h1>
+        <h1>MATH BLASTERC</h1>
         <div class="briefing-box">
             <p><strong>MISSION BRIEFING:</strong></p>
             <p>🎯 Tap/Click correct asteroid</p>
