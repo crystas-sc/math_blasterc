@@ -707,10 +707,10 @@
             return mesh;
         }
 
-        function extendSlingBand() {
+        function extendSlingBand(increment) {
             slingshot.remove(slingBandMesh);
             const newBandPoints = bandPoints.map(p => p.clone());
-            newBandPoints[1].y += 0.05;
+            newBandPoints[1].y += increment;
             slingBandMesh = createSlingBand(newBandPoints)
             slingshot.add(slingBandMesh);
         }
@@ -825,6 +825,7 @@
 
             for (let i = GameState.lasers.length - 1; i >= 0; i--) {
                 const l = GameState.lasers[i]; l.life--;
+                extendSlingBand((l.life - 10) * 0.00625);
                 l.mesh.material.opacity = l.life / 10; l.mesh.material.transparent = true;
                 if (l.life <= 0) {
                     scene.remove(l.mesh);
@@ -832,7 +833,6 @@
                     resetSlingBand();
                 }
             }
-            if (GameState.lasers.length) extendSlingBand();
             stars.rotation.z += 0.0005;
             renderer.render(scene, camera);
         }
