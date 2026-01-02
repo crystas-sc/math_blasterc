@@ -378,7 +378,6 @@
 
             return function getNextDigit() {
                 if (remaining === 0) resetPool();
-                console.log(digits.slice(0, remaining));
                 return digits[--remaining];
             };
         }
@@ -680,6 +679,12 @@
 
         let slingshot = null;
         let slingBandMesh = null;
+        let initialBandMesh = null;
+        const bandPoints = [
+            new THREE.Vector3(-1, 1.6, 0),
+            new THREE.Vector3(0, 1.2, -1),
+            new THREE.Vector3(1, 1.6, 0)
+        ];
 
         function createSlingBand(points) {
             const curve = new THREE.CatmullRomCurve3(points);
@@ -687,7 +692,7 @@
             const geometry = new THREE.TubeGeometry(
                 curve,
                 20,     // segments
-                0.06,   // thickness (increase for thicker band)
+                0.08,   // thickness (increase for thicker band)
                 8,
                 false
             );
@@ -702,8 +707,22 @@
             return mesh;
         }
 
+        function extendSlingBand() {
+            slingshot.remove(slingBandMesh);
+            const newBandPoints = bandPoints.map(p => p.clone());
+            newBandPoints[1].y += 0.05;
+            slingBandMesh = createSlingBand(newBandPoints)
+            slingshot.add(slingBandMesh);
+        }
+
+        function resetSlingBand() {
+            slingshot.remove(slingBandMesh);
+            slingBandMesh = initialBandMesh;
+            slingshot.add(slingBandMesh);
+        }
 
         function createSlingshot() {
+            console.log("createSlingshot");
             const group = new THREE.Group();
 
             const material = new THREE.MeshStandardMaterial({
@@ -748,16 +767,13 @@
             });
 
             // slingBand = new THREE.Line(bandGeo, bandMat);
-            const bandPoints = [
-                new THREE.Vector3(-0.7, 1.6, 0),
-                new THREE.Vector3(0, 1.2, -1),
-                new THREE.Vector3(0.7, 1.6, 0)
-            ];
-            slingBandMesh = createSlingBand(bandPoints)
+
+            initialBandMesh = slingBandMesh = createSlingBand(bandPoints)
 
             group.add(leftArm, rightArm, handle, slingBandMesh);
             group.position.set(0, -2.5, 3.5);
             scene.add(group);
+
 
             slingshot = group;
         }
@@ -810,8 +826,13 @@
             for (let i = GameState.lasers.length - 1; i >= 0; i--) {
                 const l = GameState.lasers[i]; l.life--;
                 l.mesh.material.opacity = l.life / 10; l.mesh.material.transparent = true;
-                if (l.life <= 0) { scene.remove(l.mesh); GameState.lasers.splice(i, 1); }
+                if (l.life <= 0) {
+                    scene.remove(l.mesh);
+                    GameState.lasers.splice(i, 1);
+                    resetSlingBand();
+                }
             }
+            if (GameState.lasers.length) extendSlingBand();
             stars.rotation.z += 0.0005;
             renderer.render(scene, camera);
         }
