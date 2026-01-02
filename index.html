@@ -173,39 +173,6 @@
             display: none !important;
         }
 
-        #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-
-        #crosshair::before,
-        #crosshair::after {
-            content: '';
-            position: absolute;
-            background: #0f0;
-            box-shadow: 0 0 10px #0f0;
-        }
-
-        #crosshair::before {
-            top: 19px;
-            left: 0;
-            width: 40px;
-            height: 2px;
-        }
-
-        #crosshair::after {
-            top: 0;
-            left: 19px;
-            width: 2px;
-            height: 40px;
-        }
 
         /* Specific fixes for small landscape screens */
         @media (max-height: 450px) {
@@ -284,7 +251,6 @@
                 <div id="lives-display">Hull: 9</div>
             </div>
         </div>
-        <div id="crosshair"></div>
         <button id="pause-btn" class="hidden">PAUSE</button>
     </div>
 
@@ -594,11 +560,12 @@
 
         function createLaser(targetPos) {
             AudioSys.playLaser();
-            const points = [new THREE.Vector3(0.5, -2, 4), targetPos];
+            const points = [new THREE.Vector3(0, -2, 1), targetPos];
             const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 }));
             scene.add(line);
             GameState.lasers.push({ mesh: line, life: 10 });
         }
+
 
         function createExplosion(pos, color) {
             for (let i = 0; i < 20; i++) {
@@ -612,7 +579,6 @@
 
         function checkInput(x, y) {
             if (!GameState.isPlaying || GameState.isPaused) return;
-            updateCrosshairPosition(x, y);
             Input.cursor.x = x; Input.cursor.y = y;
             pointer.x = (x / window.innerWidth) * 2 - 1; pointer.y = -(y / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(pointer, camera);
@@ -680,7 +646,6 @@
             document.getElementById('pause-btn').classList.remove('hidden');
             document.getElementById('pause-btn').innerText = 'PAUSE';
             Input.cursor.x = window.innerWidth / 2; Input.cursor.y = window.innerHeight / 2;
-            updateCrosshairPosition(Input.cursor.x, Input.cursor.y);
             updateHUD();
             document.getElementById('ui-layer').classList.remove('hidden');
             document.getElementById('start-screen').classList.add('hidden');
@@ -713,10 +678,94 @@
             document.getElementById('lives-display').innerText = `Hull: ${GameState.lives}`;
         }
 
-        function updateCrosshairPosition(x, y) {
-            const el = document.getElementById('crosshair');
-            el.style.left = x + 'px'; el.style.top = y + 'px';
+        let slingshot = null;
+        let slingBandMesh = null;
+
+        function createSlingBand(points) {
+            const curve = new THREE.CatmullRomCurve3(points);
+
+            const geometry = new THREE.TubeGeometry(
+                curve,
+                20,     // segments
+                0.06,   // thickness (increase for thicker band)
+                8,
+                false
+            );
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xff4444,
+                metalness: 0.3,
+                roughness: 0.4
+            });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            return mesh;
         }
+
+
+        function createSlingshot() {
+            const group = new THREE.Group();
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x4444ff,
+                metalness: 0.8,
+                roughness: 0.3
+            });
+
+            // Left arm
+            const leftArm = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.1, 0.15, 2.2, 8),
+                material
+            );
+            leftArm.position.set(-0.4, 0.8, 0);
+            leftArm.rotation.z = Math.PI / 6;
+
+            // Right arm
+            const rightArm = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.1, 0.15, 2.2, 8),
+                material
+            );
+            rightArm.position.set(0.4, 0.8, 0);
+            rightArm.rotation.z = -Math.PI / 6;
+
+            // Handle
+            const handle = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.2, 2.5, 10),
+                material
+            );
+            handle.position.set(0, -1, 0);
+
+            // Elastic band
+            const bandGeo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-0.4, 1.6, 0),
+                new THREE.Vector3(0, 1.2, -1),
+                new THREE.Vector3(0.4, 1.6, 0)
+            ]);
+
+            const bandMat = new THREE.LineBasicMaterial({
+                color: 0xff0000,
+                linewidth: 2
+            });
+
+            // slingBand = new THREE.Line(bandGeo, bandMat);
+            const bandPoints = [
+                new THREE.Vector3(-0.7, 1.6, 0),
+                new THREE.Vector3(0, 1.2, -1),
+                new THREE.Vector3(0.7, 1.6, 0)
+            ];
+            slingBandMesh = createSlingBand(bandPoints)
+
+            group.add(leftArm, rightArm, handle, slingBandMesh);
+            group.position.set(0, -2.5, 3.5);
+            scene.add(group);
+
+            slingshot = group;
+        }
+        createSlingshot();
+
+
+
+
 
         function animate() {
             requestAnimationFrame(animate);
@@ -735,7 +784,6 @@
             if (moved) {
                 Input.cursor.x = Math.max(0, Math.min(window.innerWidth, Input.cursor.x));
                 Input.cursor.y = Math.max(0, Math.min(window.innerHeight, Input.cursor.y));
-                updateCrosshairPosition(Input.cursor.x, Input.cursor.y);
             }
             if ((Input.keys[" "] || Input.keys.Enter) && !Input.isFiring) {
                 Input.isFiring = true; checkInput(Input.cursor.x, Input.cursor.y);
@@ -768,10 +816,10 @@
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('mousemove', (e) => { if (GameState.isPlaying) { Input.cursor.x = e.clientX; Input.cursor.y = e.clientY; updateCrosshairPosition(e.clientX, e.clientY); } });
+        window.addEventListener('mousemove', (e) => { if (GameState.isPlaying) { Input.cursor.x = e.clientX; Input.cursor.y = e.clientY; } });
         window.addEventListener('mousedown', (e) => { if (GameState.isPaused) togglePause(); if (e.target.tagName !== 'BUTTON') checkInput(e.clientX, e.clientY); });
         window.addEventListener('touchstart', (e) => { if (e.target.tagName !== 'BUTTON') { const t = e.touches[0]; checkInput(t.clientX, t.clientY); } }, { passive: false });
-        window.addEventListener('touchmove', (e) => { if (GameState.isPlaying) { const t = e.touches[0]; Input.cursor.x = t.clientX; Input.cursor.y = t.clientY; updateCrosshairPosition(t.clientX, t.clientY); } }, { passive: false });
+        window.addEventListener('touchmove', (e) => { if (GameState.isPlaying) { const t = e.touches[0]; Input.cursor.x = t.clientX; Input.cursor.y = t.clientY; } }, { passive: false });
         window.addEventListener('keydown', (e) => { if (Input.keys.hasOwnProperty(e.key)) { Input.keys[e.key] = true; if (e.key === " " && GameState.isPlaying) e.preventDefault(); } });
         window.addEventListener('keyup', (e) => { if (Input.keys.hasOwnProperty(e.key)) Input.keys[e.key] = false; });
         window.addEventListener('resize', () => {
