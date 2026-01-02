@@ -106,7 +106,8 @@
 
         /* Updated Screen Styles for better height management */
         #start-screen,
-        #game-over-screen {
+        #game-over-screen,
+        #settings-modal {
             position: absolute;
             top: 0;
             left: 0;
@@ -140,6 +141,16 @@
             padding: 15px;
             max-width: 500px;
             margin: 10px 0;
+        }
+
+        .setting-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #0ff;
+            color: #fff;
+            padding: 5px;
+            font-family: 'Orbitron', sans-serif;
+            width: 60px;
+            text-align: center;
         }
 
         p {
@@ -213,16 +224,25 @@
             }
         }
 
-        #pause-btn {
+        .top-right-controls {
             position: absolute;
             top: 20px;
             right: 20px;
-            margin: 0;
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            width: auto;
+            display: flex;
+            gap: 10px;
             z-index: 50;
             pointer-events: auto;
+        }
+
+        .top-right-controls button {
+            margin: 0;
+            padding: 8px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: static;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -251,7 +271,19 @@
                 <div id="lives-display">Hull: 9</div>
             </div>
         </div>
-        <button id="pause-btn" class="hidden">PAUSE</button>
+        <div class="top-right-controls">
+            <button id="ingame-settings-btn" class="hidden">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path
+                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg>
+            </button>
+            <button id="pause-btn" class="hidden">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div id="start-screen">
@@ -263,6 +295,35 @@
             <p>❤️ You have <strong>9 LIVES</strong>.</p>
         </div>
         <button id="start-btn">START MISSION</button>
+
+    </div>
+
+    <div id="settings-modal" class="hidden">
+        <h1>SETTINGS</h1>
+        <div class="briefing-box">
+            <p><strong>CONFIGURE PARAMETERS</strong></p>
+
+            <div style="margin: 15px 0;">
+                <p style="color: #0ff; margin-bottom: 5px;">ADDITION / SUBTRACTION</p>
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                    <label>Min: <input type="number" id="add-min" value="10" class="setting-input"></label>
+                    <label>Max: <input type="number" id="add-max" value="99" class="setting-input"></label>
+                </div>
+            </div>
+
+            <div style="margin: 15px 0;">
+                <p style="color: #0ff; margin-bottom: 5px;">MULTIPLICATION</p>
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                    <label>Min: <input type="number" id="mul-min" value="2" class="setting-input"></label>
+                    <label>Max: <input type="number" id="mul-max" value="9" class="setting-input"></label>
+                </div>
+            </div>
+
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <button id="save-settings-btn" style="background: linear-gradient(45deg, #0f0, #0ff);">SAVE</button>
+            <button id="close-settings-btn" style="background: linear-gradient(45deg, #f00, #f80);">CANCEL</button>
+        </div>
     </div>
 
     <div id="game-over-screen" class="hidden">
@@ -384,8 +445,8 @@
 
         const smallDigits = createDigitPool(1, 9);
         const mediumDigits = createDigitPool(5, 24);
-        const largeDigits = createDigitPool(10, 99);
-        const multiplyDigits = createDigitPool(2, 9);
+        let largeDigits = createDigitPool(10, 99);
+        let multiplyDigits = createDigitPool(2, 9);
         function generateEasyAddition() {
             const left = smallDigits();
             const right = smallDigits();
@@ -460,6 +521,42 @@
         }
 
 
+
+        const settingsModal = document.getElementById('settings-modal');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+
+        const ingameSettingsBtn = document.getElementById('ingame-settings-btn');
+
+
+        function closeSettings() {
+            settingsModal.classList.add('hidden');
+            if (GameState.isPlaying) {
+                // Return to game (paused)
+            } else {
+                document.getElementById('start-screen').classList.remove('hidden');
+            }
+        }
+
+        closeSettingsBtn.addEventListener('click', closeSettings);
+
+        saveSettingsBtn.addEventListener('click', () => {
+            const addMin = parseInt(document.getElementById('add-min').value) || 10;
+            const addMax = parseInt(document.getElementById('add-max').value) || 99;
+            const mulMin = parseInt(document.getElementById('mul-min').value) || 2;
+            const mulMax = parseInt(document.getElementById('mul-max').value) || 9;
+
+            if (addMin >= addMax || mulMin >= mulMax) {
+                alert("Min values must be less than Max values!");
+                return;
+            }
+
+            largeDigits = createDigitPool(addMin, addMax);
+            multiplyDigits = createDigitPool(mulMin, mulMax);
+
+            closeSettings();
+        });
+
         const MathLogic = {
             generate: function (level) {
                 const difficulty = Math.min(level, 7);
@@ -516,17 +613,40 @@
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
 
-        function createTextTexture(text, color) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 256;
-            const ctx = canvas.getContext('2d');
+        function createTextTexture(text, color = "#00ffff") {
+            const fontSize = 96;
+            const padding = 20;
+
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            ctx.font = `bold ${fontSize}px Orbitron`;
+
+            // Measure text width
+            const metrics = ctx.measureText(text);
+            const textWidth = Math.ceil(metrics.width);
+
+            // Resize canvas to fit text
+            canvas.width = textWidth + padding * 2;
+            canvas.height = fontSize + padding * 2;
+
+            // Redraw after resize
+            ctx.font = `bold ${fontSize}px Orbitron`;
             ctx.fillStyle = color;
-            ctx.font = 'bold 100px Orbitron, sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.shadowColor = color; ctx.shadowBlur = 15;
-            ctx.fillText(text, 128, 128);
-            return new THREE.CanvasTexture(canvas);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 12;
+
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.needsUpdate = true;
+
+            return texture;
         }
+
 
         function spawnWave() {
             if (GameState.waveActive) return;
@@ -627,6 +747,7 @@
             GameState.isPlaying = false;
             if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
             document.getElementById('pause-btn').classList.add('hidden');
+            document.getElementById('ingame-settings-btn').classList.add('hidden');
             document.getElementById('ui-layer').classList.add('hidden');
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('final-score').innerText = `Final Score: ${GameState.score}`;
@@ -643,7 +764,8 @@
             GameState.isPaused = false;
             if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
             document.getElementById('pause-btn').classList.remove('hidden');
-            document.getElementById('pause-btn').innerText = 'PAUSE';
+            document.getElementById('ingame-settings-btn').classList.remove('hidden');
+            document.getElementById('pause-btn').innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
             Input.cursor.x = window.innerWidth / 2; Input.cursor.y = window.innerHeight / 2;
             updateHUD();
             document.getElementById('ui-layer').classList.remove('hidden');
@@ -658,7 +780,8 @@
             const btn = document.getElementById('pause-btn');
 
             if (GameState.isPaused) {
-                btn.innerText = 'RESUME';
+                // Resume Icon
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
                 GameState.pauseInterval = setInterval(() => {
                     if (GameState.score > 0) {
                         GameState.score = Math.max(0, GameState.score - 5);
@@ -666,7 +789,8 @@
                     }
                 }, 200);
             } else {
-                btn.innerText = 'PAUSE';
+                // Pause Icon
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
                 if (GameState.pauseInterval) clearInterval(GameState.pauseInterval);
             }
         }
@@ -851,6 +975,23 @@
             Input.cursor.y = window.innerHeight / 2;
         });
         document.getElementById('pause-btn').addEventListener('click', () => togglePause());
+
+        document.getElementById('ingame-settings-btn').addEventListener('click', () => {
+            if (!GameState.isPlaying) return;
+            if (!GameState.isPaused) togglePause();
+            settingsModal.classList.remove('hidden');
+        });
+
+        const originalCloseSettingsIndex = 0; // Tracks if we came from start screen or game
+        // Actually, we can just check GameState.isPlaying when closing.
+
+        // Override the close logic to handle game state
+        // We need to move the event listeners or just ensure they work for both contexts.
+        // I will re-define them here or update the previous block.
+        // It's cleaner to remove the old ones if I'm re-adding, but I can't easily remove anonymous functions.
+        // However, I can just update the code in place of user's previous code block if I target it, or add new logic.
+        // The previous block for 'closeSettingsBtn' was simple.
+
         window.addEventListener('keydown', (e) => {
             if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
         });
@@ -858,6 +999,7 @@
         document.getElementById('restart-btn').addEventListener('click', () => { resetGame(); });
         animate();
     </script>
+
 </body>
 
 </html>
